@@ -1,0 +1,53 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <title>Document</title>
+</head>
+
+<body>
+  <form action="/submit" method="post">
+    <label for="">start</label>
+    <input type="text" name="start" id="start">
+
+    <label for="">end</label>
+    <input type="text" name="end" id="end">
+
+    <label for="">months</label>
+    <input type="number" name="period">
+
+    <input type="submit" value="Submit">
+  </form>
+
+  <script>
+
+    flatpickr("#start", {
+      minDate: "2016-01-31",
+      maxDate: "2024-12-31",
+      disable: [
+        function (date) {
+          var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+          return (date.getDate() != lastDay);
+        }
+      ],
+    });
+
+    flatpickr("#end", {
+      minDate: "2016-01-31",
+      maxDate: "2024-12-31",
+      disable: [
+        function (date) {
+          var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+          return (date.getDate() != lastDay);
+        }
+      ],
+    });
+
+  </script>
+
+</body>
+
+</html>

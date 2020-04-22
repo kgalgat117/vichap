@@ -23,8 +23,8 @@ router.post('/submit', validateData, function (req, res) {
   }
 })
 
-var column1 = 'column1'
-var column2 = 'column2'
+var column1 = '1'
+var column2 = '2'
 
 function createJSONData(data) {
   let tableData = []

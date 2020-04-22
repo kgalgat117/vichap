@@ -34,8 +34,8 @@ router.post('/submit', validateData, function (req, res) {
     res.status(400).json(err);
   }
 });
-var column1 = 'column1';
-var column2 = 'column2';
+var column1 = '1';
+var column2 = '2';
 
 function createJSONData(data) {
   var tableData = [];

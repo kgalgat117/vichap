@@ -28,7 +28,7 @@ router.post('/submit', validateData, function (req, res) {
     });
     createFile(jsonData);
     var filePath = path.resolve('./test.xlsx');
-    res.download(filePath);
+    res.download(filePath); // res.status(200).json(jsonData)
   } catch (err) {
     console.log(err);
     res.status(400).json(err);
@@ -99,11 +99,18 @@ function createJSONData(data) {
           currentDate = moment(quaterlyTableColumn[k].date);
         } else {
           if (remainingPeriod2 > 0) {
-            var multiplier = Math.ceil(moment(quaterlyTableColumn[k].date).diff(currentDate, 'month', true)) || 1;
+            var firstDate = moment(quaterlyTableColumn[k].date);
+
+            if (k == 0) {
+              firstDate.endOf('quarter');
+            }
+
+            var multiplier = Math.ceil(firstDate.diff(currentDate, 'month', true)) || 1;
 
             if (remainingPeriod2 < multiplier) {
               multiplier = remainingPeriod2;
-            }
+            } // rowData[quaterlyTableColumn[k].headerString] = perMonth + ' * ' + multiplier + ' -- ' + moment(quaterlyTableColumn[k].date).toISOString() + ' / ' + currentDate.toISOString()
+
 
             rowData[quaterlyTableColumn[k].headerString] = perMonth * multiplier;
             currentDate = moment(quaterlyTableColumn[k].date);

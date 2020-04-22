@@ -43,15 +43,17 @@ function createJSONData(data) {
   var end = new Date(data.end);
   var range = moment.range(start, end);
   var years = Array.from(range.by('month'));
-  var annualTableColumn = createAnnualTableColumns(Array.from(range.by('year')));
-  var quaterlyTableColumn = createQuaterlyTableColumn(Array.from(range.by('quarter')));
+  var annualTableColumn = createAnnualTableColumns(range);
+  var quaterlyTableColumn = createQuaterlyTableColumn(Array.from(range.by('quarter')), range);
   var monthlyTableColumn = createMonthlyTableColumn(Array.from(range.by('month')));
   var period = data.period;
+  var mul2 = [2, 5, 8, 11];
+  var mul1 = [3, 6, 9, 12];
 
   for (var i = 0; i < years.length; i++) {
     var randomNumber = getRandomNumber();
     var rowData = {};
-    rowData[column1] = years[i].format('MM/YYYY');
+    rowData[column1] = years[i].format('MMM-YYYY');
     rowData[column2] = randomNumber;
     var perMonth = randomNumber / period;
     var currentDateYear = years[i].format('YYYY');
@@ -60,7 +62,7 @@ function createJSONData(data) {
     var remainingPeriod3 = period;
     var currentMonth = years[i].format('MM');
     var currentMonth2 = years[i].format('MM');
-    var currentQuater = getQuater(years[i]);
+    var currentQuater = getQuater(years[i]); // ************* annual table row loop **************************
 
     for (var j = 0; j < annualTableColumn.length; j++) {
       var columnHeaderYear = parseInt(annualTableColumn[j]);
@@ -75,7 +77,7 @@ function createJSONData(data) {
             remainingPeriod -= remainingMonthOfCurrentColumnHeaderYear;
           }
 
-          rowData[annualTableColumn[j]] = remainingMonthOfCurrentColumnHeaderYear * perMonth;
+          rowData[annualTableColumn[j]] = Math.floor(remainingMonthOfCurrentColumnHeaderYear * perMonth);
         } else {
           rowData[annualTableColumn[j]] = 0;
         }
@@ -84,7 +86,8 @@ function createJSONData(data) {
       }
 
       currentMonth = 1;
-    }
+    } // ************* quaterly table row loop **************************
+
 
     var currentDate = moment(years[i]);
 
@@ -99,21 +102,21 @@ function createJSONData(data) {
           currentDate = moment(quaterlyTableColumn[k].date);
         } else {
           if (remainingPeriod2 > 0) {
-            var firstDate = moment(quaterlyTableColumn[k].date);
+            var multiplier = 3;
 
             if (k == 0) {
-              firstDate.endOf('quarter');
+              if (mul2.indexOf(parseInt(years[i].format('M'))) != -1) {
+                multiplier = 2;
+              } else if (mul1.indexOf(parseInt(years[i].format('M')) != -1)) {
+                multiplier = 1;
+              }
             }
-
-            var multiplier = Math.ceil(firstDate.diff(currentDate, 'month', true)) || 1;
 
             if (remainingPeriod2 < multiplier) {
               multiplier = remainingPeriod2;
-            } // rowData[quaterlyTableColumn[k].headerString] = perMonth + ' * ' + multiplier + ' -- ' + moment(quaterlyTableColumn[k].date).toISOString() + ' / ' + currentDate.toISOString()
+            }
 
-
-            rowData[quaterlyTableColumn[k].headerString] = perMonth * multiplier;
-            currentDate = moment(quaterlyTableColumn[k].date);
+            rowData[quaterlyTableColumn[k].headerString] = Math.floor(perMonth * multiplier);
             remainingPeriod2 -= multiplier;
           } else {
             rowData[quaterlyTableColumn[k].headerString] = 0;
@@ -123,7 +126,8 @@ function createJSONData(data) {
         rowData[quaterlyTableColumn[k].headerString] = 0;
         currentDate = moment(quaterlyTableColumn[k].date);
       }
-    }
+    } // ************* monthly table row loop **************************
+
 
     for (l = 0; l < monthlyTableColumn.length; l++) {
       var _columnHeaderYear2 = parseInt(moment(monthlyTableColumn[l].date).format('YYYY'));
@@ -135,7 +139,7 @@ function createJSONData(data) {
           rowData[monthlyTableColumn[l].headerString] = 0;
         } else {
           if (remainingPeriod3 > 0) {
-            rowData[monthlyTableColumn[l].headerString] = perMonth;
+            rowData[monthlyTableColumn[l].headerString] = Math.floor(perMonth);
             remainingPeriod3--;
           } else {
             rowData[monthlyTableColumn[l].headerString] = 0;
@@ -167,7 +171,7 @@ function getQuater(momentDate) {
   return Math.floor((momentDate.toDate().getMonth() + 3) / 3);
 }
 
-function createQuaterlyTableColumn(quarters) {
+function createQuaterlyTableColumn(quarters, range) {
   var temp = [];
   quarters.forEach(function (month) {
     temp.push({
@@ -175,14 +179,26 @@ function createQuaterlyTableColumn(quarters) {
       headerString: "Q".concat(Math.floor((month.toDate().getMonth() + 3) / 3), " ").concat(month.format('YYYY'))
     });
   });
+
+  if (moment(quarters[quarters.length - 1]).isBefore(moment(range.end))) {
+    temp.push({
+      date: range.end,
+      headerString: "Q".concat(Math.floor((range.end.toDate().getMonth() + 3) / 3), " ").concat(range.end.format('YYYY'))
+    });
+  }
+
   return temp;
 }
 
-function createAnnualTableColumns(years) {
+function createAnnualTableColumns(range) {
+  var startYear = moment(range.start).format('YYYY');
+  var endYear = moment(range.end).format('YYYY');
   var temp = [];
-  years.forEach(function (month) {
-    temp.push(month.format('YYYY'));
-  });
+
+  for (var i = startYear; i <= endYear; i++) {
+    temp.push(i);
+  }
+
   return temp;
 }
 

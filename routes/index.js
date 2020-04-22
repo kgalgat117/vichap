@@ -29,19 +29,21 @@ var column2 = '2'
 
 function createJSONData(data) {
   let tableData = []
-  const start = new Date(data.start);
-  const end = new Date(data.end);
-  const range = moment.range(start, end);
-  const years = Array.from(range.by('month'));
-  const annualTableColumn = createAnnualTableColumns(Array.from(range.by('year')))
-  const quaterlyTableColumn = createQuaterlyTableColumn(Array.from(range.by('quarter')))
+  const start = new Date(data.start)
+  const end = new Date(data.end)
+  const range = moment.range(start, end)
+  const years = Array.from(range.by('month'))
+  const annualTableColumn = createAnnualTableColumns(range)
+  const quaterlyTableColumn = createQuaterlyTableColumn(Array.from(range.by('quarter')), range)
   const monthlyTableColumn = createMonthlyTableColumn(Array.from(range.by('month')))
   const period = data.period
+  const mul2 = [2, 5, 8, 11]
+  const mul1 = [3, 6, 9, 12]
 
   for (let i = 0; i < years.length; i++) {
     let randomNumber = getRandomNumber()
     let rowData = {}
-    rowData[column1] = years[i].format('MM/YYYY')
+    rowData[column1] = years[i].format('MMM-YYYY')
     rowData[column2] = randomNumber
     let perMonth = randomNumber / period
     let currentDateYear = years[i].format('YYYY')
@@ -52,6 +54,7 @@ function createJSONData(data) {
     let currentMonth2 = years[i].format('MM')
     let currentQuater = getQuater(years[i])
 
+    // ************* annual table row loop **************************
     for (var j = 0; j < annualTableColumn.length; j++) {
       let columnHeaderYear = parseInt(annualTableColumn[j])
       let remainingMonthOfCurrentColumnHeaderYear = (12 - currentMonth) + 1
@@ -63,7 +66,7 @@ function createJSONData(data) {
           } else {
             remainingPeriod -= remainingMonthOfCurrentColumnHeaderYear
           }
-          rowData[annualTableColumn[j]] = remainingMonthOfCurrentColumnHeaderYear * perMonth
+          rowData[annualTableColumn[j]] = Math.floor(remainingMonthOfCurrentColumnHeaderYear * perMonth)
         } else {
           rowData[annualTableColumn[j]] = 0
         }
@@ -73,6 +76,7 @@ function createJSONData(data) {
       currentMonth = 1
     }
 
+    // ************* quaterly table row loop **************************
     let currentDate = moment(years[i])
     for (var k = 0; k < quaterlyTableColumn.length; k++) {
       let columnHeaderYear = parseInt(moment(quaterlyTableColumn[k].date).format('YYYY'))
@@ -83,17 +87,18 @@ function createJSONData(data) {
           currentDate = moment(quaterlyTableColumn[k].date)
         } else {
           if (remainingPeriod2 > 0) {
-            let firstDate = moment(quaterlyTableColumn[k].date)
+            let multiplier = 3
             if (k == 0) {
-              firstDate.endOf('quarter')
+              if (mul2.indexOf(parseInt(years[i].format('M'))) != -1) {
+                multiplier = 2
+              } else if (mul1.indexOf(parseInt(years[i].format('M')) != -1)) {
+                multiplier = 1
+              }
             }
-            let multiplier = Math.ceil(firstDate.diff(currentDate, 'month', true)) || 1
             if (remainingPeriod2 < multiplier) {
               multiplier = remainingPeriod2
             }
-            // rowData[quaterlyTableColumn[k].headerString] = perMonth + ' * ' + multiplier + ' -- ' + moment(quaterlyTableColumn[k].date).toISOString() + ' / ' + currentDate.toISOString()
-            rowData[quaterlyTableColumn[k].headerString] =  perMonth * multiplier
-            currentDate = moment(quaterlyTableColumn[k].date)
+            rowData[quaterlyTableColumn[k].headerString] = Math.floor(perMonth * multiplier)
             remainingPeriod2 -= multiplier
           } else {
             rowData[quaterlyTableColumn[k].headerString] = 0
@@ -105,6 +110,7 @@ function createJSONData(data) {
       }
     }
 
+    // ************* monthly table row loop **************************
     for (l = 0; l < monthlyTableColumn.length; l++) {
       let columnHeaderYear = parseInt(moment(monthlyTableColumn[l].date).format('YYYY'))
       let headerMonth = parseInt(moment(monthlyTableColumn[l].date).format('MM'))
@@ -113,7 +119,7 @@ function createJSONData(data) {
           rowData[monthlyTableColumn[l].headerString] = 0
         } else {
           if (remainingPeriod3 > 0) {
-            rowData[monthlyTableColumn[l].headerString] = perMonth
+            rowData[monthlyTableColumn[l].headerString] = Math.floor(perMonth)
             remainingPeriod3--;
           } else {
             rowData[monthlyTableColumn[l].headerString] = 0
@@ -141,19 +147,24 @@ function getQuater(momentDate) {
   return Math.floor((momentDate.toDate().getMonth() + 3) / 3)
 }
 
-function createQuaterlyTableColumn(quarters) {
+function createQuaterlyTableColumn(quarters, range) {
   let temp = []
   quarters.forEach(month => {
     temp.push({ date: month, headerString: `Q${Math.floor((month.toDate().getMonth() + 3) / 3)} ${month.format('YYYY')}` })
   })
+  if (moment(quarters[quarters.length - 1]).isBefore(moment(range.end))) {
+    temp.push({ date: range.end, headerString: `Q${Math.floor(((range.end).toDate().getMonth() + 3) / 3)} ${(range.end).format('YYYY')}` })
+  }
   return temp
 }
 
-function createAnnualTableColumns(years) {
+function createAnnualTableColumns(range) {
+  let startYear = moment(range.start).format('YYYY')
+  let endYear = moment(range.end).format('YYYY')
   let temp = []
-  years.forEach(month => {
-    temp.push(month.format('YYYY'))
-  })
+  for (let i = startYear; i <= endYear; i++) {
+    temp.push(i)
+  }
   return temp
 }
 

@@ -77,6 +77,10 @@ function createJSONData(data) {
             remainingPeriod -= remainingMonthOfCurrentColumnHeaderYear;
           }
 
+          if (i > years.length - period) {
+            remainingMonthOfCurrentColumnHeaderYear -= i - (years.length - period);
+          }
+
           rowData[annualTableColumn[j]] = Math.floor(remainingMonthOfCurrentColumnHeaderYear * perMonth);
         } else {
           rowData[annualTableColumn[j]] = 0;
@@ -90,6 +94,7 @@ function createJSONData(data) {
 
 
     var currentDate = moment(years[i]);
+    var count = 1;
 
     for (var k = 0; k < quaterlyTableColumn.length; k++) {
       var _columnHeaderYear = parseInt(moment(quaterlyTableColumn[k].date).format('YYYY'));
@@ -104,10 +109,10 @@ function createJSONData(data) {
           if (remainingPeriod2 > 0) {
             var multiplier = 3;
 
-            if (k == 0) {
+            if (k == 0 || count == 1) {
               if (mul2.indexOf(parseInt(years[i].format('M'))) != -1) {
                 multiplier = 2;
-              } else if (mul1.indexOf(parseInt(years[i].format('M')) != -1)) {
+              } else if (mul1.indexOf(parseInt(years[i].format('M'))) != -1) {
                 multiplier = 1;
               }
             }
@@ -116,8 +121,21 @@ function createJSONData(data) {
               multiplier = remainingPeriod2;
             }
 
+            if (i > years.length - period) {
+              if (k == quaterlyTableColumn.length - 1) {
+                if (mul2.indexOf(parseInt(quaterlyTableColumn[k].date.format('M'))) != -1) {
+                  multiplier = 2;
+                } else if (mul1.indexOf(parseInt(quaterlyTableColumn[k].date.format('M'))) != -1) {
+                  multiplier = 1;
+                } else {
+                  multiplier = 1;
+                }
+              }
+            }
+
             rowData[quaterlyTableColumn[k].headerString] = Math.floor(perMonth * multiplier);
             remainingPeriod2 -= multiplier;
+            count++;
           } else {
             rowData[quaterlyTableColumn[k].headerString] = 0;
           }

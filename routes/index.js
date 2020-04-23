@@ -66,6 +66,9 @@ function createJSONData(data) {
           } else {
             remainingPeriod -= remainingMonthOfCurrentColumnHeaderYear
           }
+          if (i > (years.length - period)) {
+            remainingMonthOfCurrentColumnHeaderYear -= (i - (years.length - period))
+          }
           rowData[annualTableColumn[j]] = Math.floor(remainingMonthOfCurrentColumnHeaderYear * perMonth)
         } else {
           rowData[annualTableColumn[j]] = 0
@@ -78,6 +81,7 @@ function createJSONData(data) {
 
     // ************* quaterly table row loop **************************
     let currentDate = moment(years[i])
+    let count = 1
     for (var k = 0; k < quaterlyTableColumn.length; k++) {
       let columnHeaderYear = parseInt(moment(quaterlyTableColumn[k].date).format('YYYY'))
       let headerQuater = getQuater(quaterlyTableColumn[k].date)
@@ -88,18 +92,30 @@ function createJSONData(data) {
         } else {
           if (remainingPeriod2 > 0) {
             let multiplier = 3
-            if (k == 0) {
+            if (k == 0 || count == 1) {
               if (mul2.indexOf(parseInt(years[i].format('M'))) != -1) {
                 multiplier = 2
-              } else if (mul1.indexOf(parseInt(years[i].format('M')) != -1)) {
+              } else if (mul1.indexOf(parseInt(years[i].format('M'))) != -1) {
                 multiplier = 1
               }
             }
             if (remainingPeriod2 < multiplier) {
               multiplier = remainingPeriod2
             }
+            if (i > (years.length - period)) {
+              if (k == (quaterlyTableColumn.length - 1)) {
+                if (mul2.indexOf(parseInt(quaterlyTableColumn[k].date.format('M'))) != -1) {
+                  multiplier = 2
+                } else if (mul1.indexOf(parseInt(quaterlyTableColumn[k].date.format('M'))) != -1) {
+                  multiplier = 1
+                } else {
+                  multiplier = 1
+                }
+              }
+            }
             rowData[quaterlyTableColumn[k].headerString] = Math.floor(perMonth * multiplier)
             remainingPeriod2 -= multiplier
+            count++
           } else {
             rowData[quaterlyTableColumn[k].headerString] = 0
           }
